@@ -184,6 +184,35 @@ class PacmanGame:
             self.player.change_x = 1
             self.player.change_y = 0
 
+    def on_update(self, delta_time):
+        if self.game_over:
+            return "GAME OVER"
+        maccabi_x = self.center_x
+        maccabi_y = self.center_y
+        self.player.move()
+        player_wall_collision = arcade.check_for_collision_with_list(self.wall_list, self.player)
+        if len(player_wall_collision) > 0:
+            self.center_y = maccabi_y
+            self.center_x = maccabi_x
+
+        for ghost in self.ghost_list:
+            hapoel_x = self.ghost.center_x
+            hapoel_y = self.ghost.center_y
+            self.enemy.pick_new_direction()
+            self.enemy.move()
+            ghost_wall_collision = arcade.check_for_collision_with_list(self.wall_list, ghost)
+            if len(ghost_wall_collision) > 0:
+                while True:
+                    self.ghost.center_y = hapoel_y
+                    self.ghost.center_x = hapoel_x
+                    self.enemy.pick_new_direction()
+                    self.enemy.move()
+                    ghost_wall_collision = arcade.check_for_collision_with_list(self.wall_list,
+                                                                                ghost)
+                    if len(ghost_wall_collision) == 0:
+                        break
+        player_coin_collision = arcade.check_for_collision_with_list(self.coin_list, self.player)
+        for coin in player_coin_collision:
 
 
 
