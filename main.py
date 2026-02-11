@@ -184,6 +184,13 @@ class PacmanGame:
             self.player.change_x = 1
             self.player.change_y = 0
 
+    def on_key_release(self, key, modifiers):
+        if not key == arcade.key.up or arcade.key.down:
+            self.change_y = 0
+
+        elif not key == arcade.key.left or arcade.key.right:
+            self.change_x = 0
+
     def on_update(self, delta_time):
         if self.game_over:
             return "GAME OVER"
