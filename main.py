@@ -213,6 +213,11 @@ class PacmanGame:
                         break
         player_coin_collision = arcade.check_for_collision_with_list(self.coin_list, self.player)
         for coin in player_coin_collision:
+            self.player.score += coin.value
+            self.coin_list.remove(coin)
+
+
+
 
 
 
