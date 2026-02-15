@@ -8,6 +8,9 @@ LEVEL_MAP = [
     "###########",
 ]
 TILE_SIZE = 32
+WINDOW_WIDTH = 800
+WINDOW_HEIGHT = 600
+WINDOW_TITLE = "THE YELLOW MAN"
 
 class Coin(arcade.Sprite):
     def __init__(self, x, y, value = 10):
@@ -101,19 +104,19 @@ class PacmanGame(arcade.View):
         self.game_over = False
         for row_idx, row in enumerate(LEVEL_MAP):
             for col_idx, cell in enumerate(row):
-                x = col_idx * TILE_SIZE + TILE_SIZE / 2
-                y = row_idx * TILE_SIZE + TILE_SIZE / 2
+                x = col_idx * TILE_SIZE + TILE_SIZE // 2
+                y = row_idx * TILE_SIZE + TILE_SIZE // 2
                 if LEVEL_MAP[row_idx][col_idx] is "#":
-                    self.wall_list.append((x, y))
+                    self.wall_list.append(Wall(x, y))
 
                 elif LEVEL_MAP[row_idx][col_idx] is ".":
-                    self.coin_list.append((x, y))
+                    self.coin_list.append(Coin(x, y))
 
                 elif LEVEL_MAP[row_idx][col_idx] is "G":
-                    self.ghost_list.append((x, y))
+                    self.ghost_list.append(Enemy(x, y))
 
                 elif LEVEL_MAP[row_idx][col_idx] is "P":
-                    self.player_list.append((x, y))
+                    self.player_list.append(Player(x, y))
 
     def on_draw(self):
         self.clear()
@@ -237,3 +240,14 @@ class PacmanGame(arcade.View):
                 self.player.center_x = self.player.started_x
                 self.player.center_y = self.player.started_y
 
+def main():
+    """פונקציית main שמריצה את המשחק."""
+    window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
+    game_view = PacmanGame()
+    game_view.setup()
+    window.show_view(game_view)
+    arcade.run()
+
+
+if __name__ == "__main__":
+    main()
