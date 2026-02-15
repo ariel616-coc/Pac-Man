@@ -1,7 +1,12 @@
 import random
 import arcade
 
-
+LEVEL_MAP = [
+    "###########",
+    "#P....G...#",
+    "#.........#",
+    "###########",
+]
 TILE_SIZE = 32
 
 class Coin(arcade.Sprite):
@@ -76,7 +81,7 @@ class Wall(arcade.Sprite):
         self.center_y = center_y
 
 
-class PacmanGame:
+class PacmanGame(arcade.View):
     def __init__(self):
         self.wall_list = arcade.SpriteList()
         self.coin_list = arcade.SpriteList()
@@ -97,17 +102,17 @@ class PacmanGame:
         for row_idx, row in enumerate(LEVEL_MAP):
             for col_idx, cell in enumerate(row):
                 x = col_idx * TILE_SIZE + TILE_SIZE / 2
-                y = (row - row_idx - 1) * TILE_SIZE + TILE_SIZE / 2
-                if LEVEL_MAP[x, y] is wall:
+                y = row_idx * TILE_SIZE + TILE_SIZE / 2
+                if LEVEL_MAP[row_idx][col_idx] is "#":
                     self.wall_list.append((x, y))
 
-                elif LEVEL_MAP[x, y] is coin:
+                elif LEVEL_MAP[row_idx][col_idx] is ".":
                     self.coin_list.append((x, y))
 
-                elif LEVEL_MAP[x, y] is ghost:
+                elif LEVEL_MAP[row_idx][col_idx] is "G":
                     self.ghost_list.append((x, y))
 
-                elif LEVEL_MAP[x, y] is player:
+                elif LEVEL_MAP[row_idx][col_idx] is "P":
                     self.player_list.append((x, y))
 
     def on_draw(self):
@@ -180,40 +185,40 @@ class PacmanGame:
             self.player.change_y = 0
 
         # חץ ימינה – תנועה ימינה (ציר X חיובי)
-        elif key == arcade.key.RIGHT: 
+        elif key == arcade.key.RIGHT:
             self.player.change_x = 1
             self.player.change_y = 0
 
     def on_key_release(self, key, modifiers):
         if not key == arcade.key.up or arcade.key.down:
-            self.change_y = 0
+            self.player.change_y = 0
 
         elif not key == arcade.key.left or arcade.key.right:
-            self.change_x = 0
+            self.player.change_x = 0
 
     def on_update(self, delta_time):
         if self.game_over:
             return "GAME OVER"
-        maccabi_x = self.center_x
-        maccabi_y = self.center_y
+        maccabi_x = self.player.center_x
+        maccabi_y = self.player.center_y
         self.player.move()
         player_wall_collision = arcade.check_for_collision_with_list(self.wall_list, self.player)
         if len(player_wall_collision) > 0:
-            self.center_y = maccabi_y
-            self.center_x = maccabi_x
+            self.player.center_y = maccabi_y
+            self.player.center_x = maccabi_x
 
         for ghost in self.ghost_list:
-            hapoel_x = self.ghost.center_x
-            hapoel_y = self.ghost.center_y
-            self.enemy.pick_new_direction()
-            self.enemy.move()
+            hapoel_x = ghost.center_x
+            hapoel_y = ghost.center_y
+            ghost.pick_new_direction()
+            ghost.move()
             ghost_wall_collision = arcade.check_for_collision_with_list(self.wall_list, ghost)
             if len(ghost_wall_collision) > 0:
                 while True:
-                    self.ghost.center_y = hapoel_y
-                    self.ghost.center_x = hapoel_x
-                    self.enemy.pick_new_direction()
-                    self.enemy.move()
+                    ghost.center_y = hapoel_y
+                    ghost.center_x = hapoel_x
+                    ghost.pick_new_direction()
+                    ghost.move()
                     ghost_wall_collision = arcade.check_for_collision_with_list(self.wall_list,
                                                                                 ghost)
                     if len(ghost_wall_collision) == 0:
@@ -223,9 +228,12 @@ class PacmanGame:
             self.player.score += coin.value
             self.coin_list.remove(coin)
 
-
-
-
-
-
+        player_ghost_coll_list = arcade.check_for_collision_with_list(self.ghost_list, self.player)
+        if player_ghost_coll_list > 0:
+            self.player.lives -= 1
+            if self.player.lives == 0:
+                self.game_over = True
+            if self.player.lives > 0:
+                self.player.center_x = self.player.started_x
+                self.player.center_y = self.player.started_y
 
