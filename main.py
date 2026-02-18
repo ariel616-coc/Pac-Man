@@ -2,10 +2,25 @@ import random
 import arcade
 
 LEVEL_MAP = [
-    "###########",
-    "#P....G...#",
-    "#.........#",
-    "###########",
+    "#########################",
+    "#P....G.................#",
+    "#.......................#",
+    "#...##.#########...##...#",
+    "#...##...#######...##...#",
+    "#...........#...........#",
+    "#...........#...........#",
+    "#.....#############.....#",
+    "#...........#...........#",
+    "#...........#...........#",
+    "#...........#...........#",
+    "#...........#...........#",
+    "#...........#...........#",
+    "#...........#...........#",
+    "#...##...#######...##...#",
+    "#...##...#######...##...#",
+    "#.......................#",
+    "#.......................#",
+    "#########################",
 ]
 TILE_SIZE = 32
 WINDOW_WIDTH = 800
@@ -26,7 +41,7 @@ class Coin(arcade.Sprite):
 
 
 class Character (arcade.Sprite):
-    def __init__(self, started_x, started_y, speed = 0, change_x = 0, change_y = 0, color = arcade.color.YELLOW):
+    def __init__(self, started_x, started_y, speed, color):
         super().__init__()
         radius = TILE_SIZE // 2 - 2
         texture = arcade.make_circle_texture(radius * 2, color)
@@ -36,47 +51,48 @@ class Character (arcade.Sprite):
         self.speed = speed
         self.width = texture.width
         self.height = texture.height
-        self.change_x = change_x
-        self.change_y = change_y
-
-
-class Player(Character):
-    def __init__(self, started_x, started_y):
-        super().__init__(started_x, started_y)
-        self.score = 0
-        self.lives = 3
+        self.change_x = 0
+        self.change_y = 0
 
     def move(self):
         self.center_x += self.change_x * self.speed
         self.center_y += self.change_y * self.speed
 
 
-class Enemy(Character):
-    def __init__(self, started_x, started_y, color = arcade.color.RED):
-        super().__init__(started_x, started_y, color)
+class Player(Character):
+    def __init__(self, started_x, started_y, speed=3, color=arcade.color.YELLOW):
+        super().__init__(started_x, started_y, speed, color)
+        self.score = 0
+        self.lives = 3
+        self.started_x = started_x
+        self.started_y = started_y
 
+
+class Enemy(Character):
+    def __init__(self, started_x, started_y, speed=6, color=arcade.color.RED):
+        super().__init__(started_x, started_y, speed, color)
+        self.speed = speed
         self.time_to_change_direction = 0
 
     def pick_new_direction(self):
         movements = [(0, 1), (0, -1), (1, 0), (-1, 0), (0, 0)]
         fate = random.choice(movements)
-        self.change_x = fate[0]
-        self.change_y = fate[1]
+        self.change_x = int(fate[0])
+        self.change_y = int(fate[1])
         self.time_to_change_direction = random.uniform(0.3, 1.0)
 
     def update(self, delta_time = 1/60):
         if self.time_to_change_direction == 0:
             self.pick_new_direction()
-        self.center_x += self.change_x * self.speed
-        self.center_y += self.change_y * self.speed
+        self.move()
         self.time_to_change_direction -= delta_time
 
 
 class Wall(arcade.Sprite):
     def __init__(self, center_x, center_y):
         super().__init__()
-        radius = TILE_SIZE
-        texture = arcade.make_soft_square_texture(center_x,center_y , radius , arcade.color.BLUE)
+        radius = 68
+        texture = arcade.make_soft_square_texture(radius , arcade.color.BLUE)
         self.width = texture.width
         self.height = texture.height
         self.texture = texture
@@ -86,6 +102,7 @@ class Wall(arcade.Sprite):
 
 class PacmanGame(arcade.View):
     def __init__(self):
+        super().__init__()
         self.wall_list = arcade.SpriteList()
         self.coin_list = arcade.SpriteList()
         self.ghost_list = arcade.SpriteList()
@@ -106,17 +123,19 @@ class PacmanGame(arcade.View):
             for col_idx, cell in enumerate(row):
                 x = col_idx * TILE_SIZE + TILE_SIZE // 2
                 y = row_idx * TILE_SIZE + TILE_SIZE // 2
-                if LEVEL_MAP[row_idx][col_idx] is "#":
+                if LEVEL_MAP[row_idx][col_idx] == "#":
                     self.wall_list.append(Wall(x, y))
 
-                elif LEVEL_MAP[row_idx][col_idx] is ".":
+                elif LEVEL_MAP[row_idx][col_idx] == ".":
                     self.coin_list.append(Coin(x, y))
 
-                elif LEVEL_MAP[row_idx][col_idx] is "G":
+                elif LEVEL_MAP[row_idx][col_idx] == "G":
                     self.ghost_list.append(Enemy(x, y))
 
-                elif LEVEL_MAP[row_idx][col_idx] is "P":
-                    self.player_list.append(Player(x, y))
+                elif LEVEL_MAP[row_idx][col_idx] == "P":
+                    self.player = Player(x, y)
+                    self.player_list.append(self.player)
+
 
     def on_draw(self):
         self.clear()
@@ -193,10 +212,10 @@ class PacmanGame(arcade.View):
             self.player.change_y = 0
 
     def on_key_release(self, key, modifiers):
-        if not key == arcade.key.up or arcade.key.down:
+        if key in (arcade.key.UP, arcade.key.DOWN):
             self.player.change_y = 0
 
-        elif not key == arcade.key.left or arcade.key.right:
+        elif key in (arcade.key.LEFT, arcade.key.RIGHT):
             self.player.change_x = 0
 
     def on_update(self, delta_time):
@@ -205,7 +224,7 @@ class PacmanGame(arcade.View):
         maccabi_x = self.player.center_x
         maccabi_y = self.player.center_y
         self.player.move()
-        player_wall_collision = arcade.check_for_collision_with_list(self.wall_list, self.player)
+        player_wall_collision = arcade.check_for_collision_with_list(self.player, self.wall_list)
         if len(player_wall_collision) > 0:
             self.player.center_y = maccabi_y
             self.player.center_x = maccabi_x
@@ -215,24 +234,23 @@ class PacmanGame(arcade.View):
             hapoel_y = ghost.center_y
             ghost.pick_new_direction()
             ghost.move()
-            ghost_wall_collision = arcade.check_for_collision_with_list(self.wall_list, ghost)
+            ghost_wall_collision = arcade.check_for_collision_with_list(ghost, self.wall_list)
             if len(ghost_wall_collision) > 0:
                 while True:
                     ghost.center_y = hapoel_y
                     ghost.center_x = hapoel_x
                     ghost.pick_new_direction()
                     ghost.move()
-                    ghost_wall_collision = arcade.check_for_collision_with_list(self.wall_list,
-                                                                                ghost)
+                    ghost_wall_collision = arcade.check_for_collision_with_list(ghost, self.wall_list)
                     if len(ghost_wall_collision) == 0:
                         break
-        player_coin_collision = arcade.check_for_collision_with_list(self.coin_list, self.player)
+        player_coin_collision = arcade.check_for_collision_with_list(self.player, self.coin_list)
         for coin in player_coin_collision:
             self.player.score += coin.value
-            self.coin_list.remove(coin)
+            coin.remove_from_sprite_lists()
 
-        player_ghost_coll_list = arcade.check_for_collision_with_list(self.ghost_list, self.player)
-        if player_ghost_coll_list > 0:
+        player_ghost_coll_list = arcade.check_for_collision_with_list(self.player, self.ghost_list)
+        if len(player_ghost_coll_list) > 0:
             self.player.lives -= 1
             if self.player.lives == 0:
                 self.game_over = True
@@ -251,3 +269,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
