@@ -3,25 +3,25 @@ import arcade
 
 LEVEL_MAP = [
     "#########################",
-    "#P....G.................#",
-    "#.......................#",
-    "#...##.#########...##...#",
-    "#...##...#######...##...#",
-    "#...........#...........#",
-    "#...........#...........#",
-    "#.....#############.....#",
-    "#...........#...........#",
-    "#...........#...........#",
-    "#...........#...........#",
-    "#...........#...........#",
-    "#...........#...........#",
-    "#...........#...........#",
-    "#...##...#######...##...#",
-    "#...##...#######...##...#",
-    "#.......................#",
-    "#.......................#",
+    "#P..........#..........G#",
+    "#.########..#.#########.#",
+    "#..#######.....#######..#",
+    "#..#.###.#.###.#.###.#..#",
+    "#....#.........#.....#..#",
+    "###.###..#######..###.###",
+    "#........#.....#........#",
+    "#..#######.. ###..########",
+    "#..#.................#..#",
+    "#..#.#####..###..#####.##",
+    "#..#.#...#..###..#...#.##",
+    "#..#.#...#.......#...#.##",
+    "#....#####..###..#####..#",
+    "###.........###.........#",
+    "#....#####.......######.#",
+    "#...........G...........#",
     "#########################",
 ]
+# LEVEL_MAP = ["#P.#"]
 TILE_SIZE = 32
 WINDOW_WIDTH = 800
 WINDOW_HEIGHT = 600
@@ -41,9 +41,8 @@ class Coin(arcade.Sprite):
 
 
 class Character (arcade.Sprite):
-    def __init__(self, started_x, started_y, speed, color):
+    def __init__(self, started_x, started_y, speed, color , radius):
         super().__init__()
-        radius = TILE_SIZE // 2 - 2
         texture = arcade.make_circle_texture(radius * 2, color)
         self.texture = texture
         self.center_x = started_x
@@ -60,17 +59,17 @@ class Character (arcade.Sprite):
 
 
 class Player(Character):
-    def __init__(self, started_x, started_y, speed=3, color=arcade.color.YELLOW):
-        super().__init__(started_x, started_y, speed, color)
+    def __init__(self, started_x, started_y, speed=4, color=arcade.color.YELLOW, radius = TILE_SIZE // 2 - 5):
+        super().__init__(started_x, started_y, speed,color, radius)
         self.score = 0
-        self.lives = 3
+        self.lives = 1
         self.started_x = started_x
         self.started_y = started_y
 
 
 class Enemy(Character):
-    def __init__(self, started_x, started_y, speed=6, color=arcade.color.RED):
-        super().__init__(started_x, started_y, speed, color)
+    def __init__(self, started_x, started_y, speed=8, color=arcade.color.RED, radius = TILE_SIZE // 2 - 2):
+        super().__init__(started_x, started_y, speed, color, radius)
         self.speed = speed
         self.time_to_change_direction = 0
 
@@ -91,7 +90,7 @@ class Enemy(Character):
 class Wall(arcade.Sprite):
     def __init__(self, center_x, center_y):
         super().__init__()
-        radius = 68
+        radius = TILE_SIZE * 2 - 1
         texture = arcade.make_soft_square_texture(radius , arcade.color.BLUE)
         self.width = texture.width
         self.height = texture.height
@@ -145,28 +144,17 @@ class PacmanGame(arcade.View):
         self.ghost_list.draw()
         self.player_list.draw()
 
-        arcade.draw_text(
-            f"Score: {self.player.score}",
-            10, self.player.height - 30,
-            arcade.color.WHITE, 16
-        )
+        arcade.draw_text(f"Score: {self.player.score}", 0, 578, arcade.color.WHITE, 18, 200, "left", "left", "baseline")
+        arcade.draw_text(f"Lives: {self.player.lives}", 710, 578,arcade.color.WHITE, 18, 200, "left", "left", "baseline")
 
-        arcade.draw_text(
-            f"Lives: {self.player.lives}",
-            10, self.player.height - 55,
-            arcade.color.WHITE, 16
-        )
+        if self.game_over == "win":
+            arcade.draw_text("YOU WIN", 400, 300, arcade.color.RED, 100, 200, anchor_x="center", anchor_y="center")
 
-        if self.game_over:
-            arcade.draw_text(
-                "GAME OVER",
-                self.player.width // 2,
-                self.player.height // 2,
-                arcade.color.RED,
-                40,
-                anchor_x="center",
-                anchor_y="center"
-            )
+        elif self.game_over:
+            arcade.draw_text("GAME OVER", 400, 300, arcade.color.RED, 100, 200, anchor_x="center", anchor_y="center")
+
+
+
 
     def on_key_press(self, key, modifiers):
         """
@@ -248,6 +236,8 @@ class PacmanGame(arcade.View):
         for coin in player_coin_collision:
             self.player.score += coin.value
             coin.remove_from_sprite_lists()
+            if len(self.coin_list) == 0:
+                self.game_over = "win"
 
         player_ghost_coll_list = arcade.check_for_collision_with_list(self.player, self.ghost_list)
         if len(player_ghost_coll_list) > 0:
@@ -260,10 +250,12 @@ class PacmanGame(arcade.View):
 
 def main():
     """פונקציית main שמריצה את המשחק."""
+    intro_sound = arcade.load_sound("startup.mp3")
     window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE)
     game_view = PacmanGame()
     game_view.setup()
     window.show_view(game_view)
+    intro_sound.play(loop=True)
     arcade.run()
 
 
