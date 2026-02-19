@@ -4,7 +4,7 @@ import math
 
 LEVEL_MAP = [
     "############A############",
-    "#P......................#",
+    "#.......................#",
     "#.###.#.##.###.##.#.###.#",
     "#.###.#.##.###.##.#.###.#",
     "#.....#...........#.....#",
@@ -119,6 +119,8 @@ class Enemy(Character):
     def __init__(self, started_x, started_y, speed=3, color=arcade.color.RED, radius=TILE_SIZE // 2 - 2):
         super().__init__(started_x, started_y, speed, color, radius)
         self.time_to_change_direction = 0
+        self.started_x = started_x
+        self.started_y = started_y
 
     def pick_new_direction(self):
         movements = [(0, 1), (0, -1), (1, 0), (-1, 0)]
@@ -175,6 +177,7 @@ class PacmanGame(arcade.View):
         self.player_list = arcade.SpriteList()
         self.portal_list = arcade.SpriteList()
         self.game_over = False
+        self.player = None
         self.setup()
 
     def setup(self):
@@ -215,13 +218,24 @@ class PacmanGame(arcade.View):
 
         hit_portals = arcade.check_for_collision_with_list(character, self.portal_list)
         if hit_portals:
-            current_p = hit_portals[0]
-            for p in self.portal_list:
-                if p.mode == current_p.mode and p != current_p:
-                    character.center_x = p.center_x
-                    character.center_y = p.center_y
-                    character.teleport_cooldown = 1.5
-                    break
+
+            # אם זה שחקן – התנהגות רגילה
+            if isinstance(character, Player):
+                current_p = hit_portals[0]
+                for p in self.portal_list:
+                    if p.mode == current_p.mode and p != current_p:
+                        character.center_x = p.center_x
+                        character.center_y = p.center_y
+                        character.teleport_cooldown = 1.5
+                        break
+
+            # אם זו רוח – חוזרת להתחלה
+            elif isinstance(character, Enemy):
+                character.center_x = character.started_x
+                character.center_y = character.started_y
+                character.change_x = 0
+                character.change_y = 0
+                character.teleport_cooldown = 1.5
 
     def on_draw(self):
         self.clear()
@@ -233,8 +247,8 @@ class PacmanGame(arcade.View):
             portal.draw_portal()
 
         self.player.draw_custom()
-        arcade.draw_text(f"Score: {self.player.score}", 10, WINDOW_HEIGHT - 30, arcade.color.WHITE, 16)
-        arcade.draw_text(f"Lives: {self.player.lives}", WINDOW_WIDTH - 100, WINDOW_HEIGHT - 30, arcade.color.WHITE, 16)
+        arcade.draw_text(f"Score: {self.player.score}", 10, WINDOW_HEIGHT - 25, arcade.color.WHITE, 20)
+        arcade.draw_text(f"Lives: {self.player.lives}", WINDOW_WIDTH - 90, WINDOW_HEIGHT - 25, arcade.color.WHITE, 20)
 
         if self.game_over == "win":
             arcade.draw_text("YOU WIN", WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2, arcade.color.GREEN, 80, anchor_x="center")
