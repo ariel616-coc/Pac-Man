@@ -162,7 +162,7 @@ class Portal(arcade.Sprite):
 class Wall(arcade.Sprite):
     def __init__(self, center_x, center_y, color=arcade.color.BLUE):
         super().__init__()
-        self.texture = arcade.make_soft_square_texture(TILE_SIZE + 1, color)
+        self.texture = arcade.make_soft_square_texture(TILE_SIZE - 1, color)
         self.center_x = center_x
         self.center_y = center_y
 
@@ -224,8 +224,8 @@ class PacmanGame(arcade.View):
                 current_p = hit_portals[0]
                 for p in self.portal_list:
                     if p.mode == current_p.mode and p != current_p:
-                        character.center_x = p.center_x
-                        character.center_y = p.center_y
+                        character.center_x = p.center_x + character.change_x * 5
+                        character.center_y = p.center_y + character.change_y * 5
                         character.teleport_cooldown = 1.5
                         break
 
@@ -241,7 +241,39 @@ class PacmanGame(arcade.View):
         self.clear()
         self.wall_list.draw()
         self.coin_list.draw()
+        for ghost in self.ghost_list:
+            arcade.draw_circle_filled(
+                ghost.center_x ,
+                ghost.center_y,
+                ghost.radius + 8,
+                (255, 0,0, 50)
+            )
         self.ghost_list.draw()
+        for ghost in self.ghost_list:
+            # תחתית שטוחה לרוח
+            arcade.draw_lrbt_rectangle_filled(
+                ghost.center_x - ghost.radius,
+                ghost.center_x + ghost.radius,
+                ghost.center_y - ghost.radius,
+                ghost.center_y,
+                arcade.color.RED
+            )
+
+            # עיניים פשוטות כמו הפקמן
+            arcade.draw_circle_filled(
+                ghost.center_x - 6,
+                ghost.center_y + 4,
+                4,
+                arcade.color.BLACK
+            )
+
+            arcade.draw_circle_filled(
+                ghost.center_x + 6,
+                ghost.center_y + 4,
+                4,
+                arcade.color.BLACK
+            )
+
 
         for portal in self.portal_list:
             portal.draw_portal()
@@ -280,6 +312,16 @@ class PacmanGame(arcade.View):
         # שחקן
         maccabi_x, maccabi_y = self.player.center_x, self.player.center_y
         self.player.move(delta_time)
+        # יישור עדין לגריד (רק אם קרוב למרכז)
+        if self.player.change_x != 0:
+            target_y = round(self.player.center_y / TILE_SIZE) * TILE_SIZE
+            if abs(self.player.center_y - target_y) < 5:
+                self.player.center_y = target_y
+
+        if self.player.change_y != 0:
+            target_x = round(self.player.center_x / TILE_SIZE) * TILE_SIZE
+            if abs(self.player.center_x - target_x) < 5:
+                self.player.center_x = target_x
         self.handle_teleport(self.player)
         self.player.animate()
         if arcade.check_for_collision_with_list(self.player, self.wall_list):
