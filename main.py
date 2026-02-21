@@ -241,6 +241,30 @@ class PacmanGame(arcade.View):
         self.clear()
         self.wall_list.draw()
         self.coin_list.draw()
+        for coin in self.coin_list:
+            #  glow
+            arcade.draw_circle_filled(
+                coin.center_x,
+                coin.center_y,
+                TILE_SIZE // 4,
+                (255, 215, 0, 50)
+            )
+
+            # טבעת פנימית
+            arcade.draw_circle_outline(
+                coin.center_x,
+                coin.center_y,
+                TILE_SIZE // 4 - 3,
+                arcade.color.ORANGE,
+                2
+            )
+
+            arcade.draw_circle_filled(
+                coin.center_x - 3,
+                coin.center_y + 3,
+                2,
+                arcade.color.WHITE
+            )
         for ghost in self.ghost_list:
             arcade.draw_circle_filled(
                 ghost.center_x ,
@@ -258,8 +282,6 @@ class PacmanGame(arcade.View):
                 ghost.center_y,
                 arcade.color.RED
             )
-
-            # עיניים פשוטות כמו הפקמן
             arcade.draw_circle_filled(
                 ghost.center_x - 6,
                 ghost.center_y + 4,
