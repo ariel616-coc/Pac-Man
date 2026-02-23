@@ -11,8 +11,8 @@ LEVEL_MAP = [
     "#.###.###.#####.###.###.#",
     "#.###.###.#####.###.###.#",
     "E.......#...#...#.......T",
-    "####.####G..#..G####.####",
-    "####.####G..#..G####.####",
+    "####.####GSS#SSG####.####",
+    "####.####GSS#SSG####.####",
     "T.......#...#...#.......E",
     "#.###.###.#####.###.###.#",
     "#.###.###.#####.###.###.#",
@@ -30,10 +30,10 @@ WINDOW_TITLE = "THE YELLOW MAN"
 
 
 class Coin(arcade.Sprite):
-    def __init__(self, x, y, value=10):
+    def __init__(self, x, y, value, color, multiplier):
         super().__init__()
         radius = TILE_SIZE // 8
-        self.texture = arcade.make_circle_texture(radius * 2, arcade.color.GOLDEN_YELLOW)
+        self.texture = arcade.make_circle_texture(radius * multiplier, color)
         self.center_x = x
         self.center_y = y
         self.value = value
@@ -199,7 +199,7 @@ class PacmanGame(arcade.View):
                 elif cell == "N":
                     self.invis_wall_list.append(Wall(x, y, arcade.color.BLACK))
                 elif cell == ".":
-                    self.coin_list.append(Coin(x, y))
+                    self.coin_list.append(Coin(x, y, 10, arcade.color.GOLDEN_YELLOW, 2))
                 elif cell == "G":
                     self.ghost_list.append(Enemy(x, y))
                 elif cell == "P":
@@ -211,6 +211,8 @@ class PacmanGame(arcade.View):
                     self.portal_list.append(Portal(x, y, 2))
                 elif cell == "A":
                     self.portal_list.append(Portal(x, y, 3))
+                elif cell == "S":
+                    self.coin_list.append(Coin(x, y, 25, arcade.color.PURPLE, 4))
 
     def handle_teleport(self, character):
         if character.teleport_cooldown > 0:
