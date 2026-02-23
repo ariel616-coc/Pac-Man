@@ -212,7 +212,7 @@ class PacmanGame(arcade.View):
                 elif cell == "A":
                     self.portal_list.append(Portal(x, y, 3))
                 elif cell == "S":
-                    self.coin_list.append(Coin(x, y, 25, arcade.color.PURPLE, 4))
+                    self.coin_list.append(Coin(x, y, 25, arcade.color.PURPLE, 5))
 
     def handle_teleport(self, character):
         if character.teleport_cooldown > 0:
